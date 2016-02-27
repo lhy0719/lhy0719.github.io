@@ -740,6 +740,716 @@ var counter =
   </entry>
   
   <entry>
+    <title>纯js实现的二维码生成工具</title>
+    <link href="http://xuhaitao.me/2015/10/21/%E5%89%8D%E7%AB%AF-ewmscgj/"/>
+    <id>http://xuhaitao.me/2015/10/21/前端-ewmscgj/</id>
+    <published>2015-10-21T10:07:43.000Z</published>
+    <updated>2016-02-27T14:35:52.235Z</updated>
+    
+    <content type="html">&lt;div class=&quot;outer&quot; style=&quot;min-height:150px;border:1px solid #eee;padding:4%;box-shadow:2px 2px 9px #eee;margin-bottom:300px;&quot;&gt;&lt;br&gt;    &lt;form method=&quot;get&quot; action=&quot;&quot; style=&quot;float:left;&quot;&gt;&lt;br&gt;        &lt;input type=&quot;text&quot; id=&quot;QRstr&quot; placeholder=&quot;输入要生成二维码的内容&quot; class=&quot;input big text&quot; value=&quot;&quot;&gt;&lt;br&gt;        &lt;input type=&quot;button&quot; value=&quot;生成二维码&quot; id=&quot;creatQRcode&quot; class=&quot;big button&quot;&gt;&lt;br&gt;    &lt;/form&gt;&lt;br&gt;    &lt;div id=&quot;output&quot; style=&quot;clear:both;&quot;&gt;&lt;/div&gt;&lt;br clear=&quot;all&quot;&gt;&lt;br&gt;    &lt;div&gt;&lt;a class=&quot;fa fa-github pull-right &quot; href=&quot;https://github.com/enml/project_demo/blob/master/generateQRCode.js&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;源码地址&lt;/a&gt;&lt;/div&gt;&lt;br&gt;&lt;/div&gt;&lt;br&gt;&lt;p&gt;二维码可以理解为一种信息标签，它将信息转化为二进制然后通过一定的规则进行编码形成几何图形，这样有利于机器识别。二维码在国内普通用户间的流行应该很大程度上归功于微信的推动，并且我发现很多人对二维码始终有着一种“不明觉厉”的感觉，不过假如我们理解了技术细节，便会知道事实上它就是一种信息格式转换，并没有什么神秘之处。&lt;/p&gt;&lt;br&gt;&lt;br&gt;&lt;p&gt;网上生成二维码的应用多如牛毛，但大多数都是基于服务端，今天我闲着想使用比较熟悉的javascript来实现一下，网上搜了一下发现还是挺多使用javascript来生成二维码的，但绝大多数甚至说我搜到的全部都是使用现成的库，比如jquery-qrcode、Google Chart API。使用库的好处就是快捷方便，但弊端就是你会像一个傻子一样什么原理细节都不懂，你只是把人家封装好的黑盒子拿过来，接上几根线就可以用了，但这个黑盒子里面到底是什么你都不知道。这就是为什么同样是程序员，有的人可以成为封装黑盒子的高级工程师，而有的人却当个苦逼的码农。&lt;/p&gt;&lt;br&gt;&lt;br&gt;&lt;p&gt;后来查找了一下ISO/IEC 18004:2006文档，足足100页的英文文档看的够呛了，不过说实话写的很详细条理很清晰，相信只要有耐心的人基本都能看懂它的实现原理。不过技术原理看懂了，不代表项目就实现了。编程的精髓并且也是最大的难点不在于语言本身，而是一种对客观事物进行抽象的思维能力；学会一门语言的语法很容易，有点基础的人学一门新语言基本一两天就搞定了，但仅仅只是语法是没有用的，能使用语言处理问题才是最重要的，把客观事物抽象处理是一件很费脑力的事情，我现在仍然感到很吃力。看完ISO/IEC 18004:2006文档我能清楚的理解二维码构造的原理，但要抽象成代码就很吃力了，网上不依赖库完全使用javascript实现的例子非常罕见，所以我花了几天最终才完成了这个小项目。&lt;/p&gt;&lt;br&gt;&lt;br&gt;
+
+&lt;script&gt;
+var QR_str = document.getElementById(&quot;QRstr&quot;),
+    creatQR_btn = document.getElementById(&quot;creatQRcode&quot;),
+    outputDiv = document.getElementById(&quot;output&quot;);
+addEvent(QR_str, &quot;mouseover&quot;, function () {
+    this.select();
+});
+var canvas = document.createElement(&#39;canvas&#39;),
+    context;
+context = canvas.getContext(&#39;2d&#39;);
+if (context) {
+    addEvent(creatQR_btn, &quot;click&quot;, function () {
+        var png = QRCode.generatePNG(QR_str.value);
+        outputDiv.innerHTML = &quot;&lt;img src=\&#39;&quot; + png + &quot;\&#39;&gt;&quot;;
+    });
+} else {
+    addEvent(creatQR_btn, &quot;click&quot;, function () {
+        var table = QRCode.generateHTML(QR_str.value);
+        outputDiv.innerHTML = table;
+    });
+}
+;
+
+function addEvent(ele, event, fn) {
+    if (document.addEventListener) {
+        ele.addEventListener(event, fn);
+    } else if (ele.attachEvent) {
+        ele.attachEvent(&quot;on&quot; + event, fn);
+    } else {
+        ele[&quot;on&quot; + event] = fn;
+    }
+};
+
+
+var QRCode = (function () {
+    var VERSIONS = [
+        null,
+        [[10, 7, 17, 13], [1, 1, 1, 1], []],
+        [[16, 10, 28, 22], [1, 1, 1, 1], [4, 16]],
+        [[26, 15, 22, 18], [1, 1, 2, 2], [4, 20]],
+        [[18, 20, 16, 26], [2, 1, 4, 2], [4, 24]],
+        [[24, 26, 22, 18], [2, 1, 4, 4], [4, 28]],
+        [[16, 18, 28, 24], [4, 2, 4, 4], [4, 32]],
+        [[18, 20, 26, 18], [4, 2, 5, 6], [4, 20, 36]],
+        [[22, 24, 26, 22], [4, 2, 6, 6], [4, 22, 40]],
+        [[22, 30, 24, 20], [5, 2, 8, 8], [4, 24, 44]],
+        [[26, 18, 28, 24], [5, 4, 8, 8], [4, 26, 48]],
+        [[30, 20, 24, 28], [5, 4, 11, 8], [4, 28, 52]],
+        [[22, 24, 28, 26], [8, 4, 11, 10], [4, 30, 56]],
+        [[22, 26, 22, 24], [9, 4, 16, 12], [4, 32, 60]],
+        [[24, 30, 24, 20], [9, 4, 16, 16], [4, 24, 44, 64]],
+        [[24, 22, 24, 30], [10, 6, 18, 12], [4, 24, 46, 68]],
+        [[28, 24, 30, 24], [10, 6, 16, 17], [4, 24, 48, 72]],
+        [[28, 28, 28, 28], [11, 6, 19, 16], [4, 28, 52, 76]],
+        [[26, 30, 28, 28], [13, 6, 21, 18], [4, 28, 54, 80]],
+        [[26, 28, 26, 26], [14, 7, 25, 21], [4, 28, 56, 84]],
+        [[26, 28, 28, 30], [16, 8, 25, 20], [4, 32, 60, 88]],
+        [[26, 28, 30, 28], [17, 8, 25, 23], [4, 26, 48, 70, 92]],
+        [[28, 28, 24, 30], [17, 9, 34, 23], [4, 24, 48, 72, 96]],
+        [[28, 30, 30, 30], [18, 9, 30, 25], [4, 28, 52, 76, 100]],
+        [[28, 30, 30, 30], [20, 10, 32, 27], [4, 26, 52, 78, 104]],
+        [[28, 26, 30, 30], [21, 12, 35, 29], [4, 30, 56, 82, 108]],
+        [[28, 28, 30, 28], [23, 12, 37, 34], [4, 28, 56, 84, 112]],
+        [[28, 30, 30, 30], [25, 12, 40, 34], [4, 32, 60, 88, 116]],
+        [[28, 30, 30, 30], [26, 13, 42, 35], [4, 24, 48, 72, 96, 120]],
+        [[28, 30, 30, 30], [28, 14, 45, 38], [4, 28, 52, 76, 100, 124]],
+        [[28, 30, 30, 30], [29, 15, 48, 40], [4, 24, 50, 76, 102, 128]],
+        [[28, 30, 30, 30], [31, 16, 51, 43], [4, 28, 54, 80, 106, 132]],
+        [[28, 30, 30, 30], [33, 17, 54, 45], [4, 32, 58, 84, 110, 136]],
+        [[28, 30, 30, 30], [35, 18, 57, 48], [4, 28, 56, 84, 112, 140]],
+        [[28, 30, 30, 30], [37, 19, 60, 51], [4, 32, 60, 88, 116, 144]],
+        [[28, 30, 30, 30], [38, 19, 63, 53], [4, 28, 52, 76, 100, 124, 148]],
+        [[28, 30, 30, 30], [40, 20, 66, 56], [4, 22, 48, 74, 100, 126, 152]],
+        [[28, 30, 30, 30], [43, 21, 70, 59], [4, 26, 52, 78, 104, 130, 156]],
+        [[28, 30, 30, 30], [45, 22, 74, 62], [4, 30, 56, 82, 108, 134, 160]],
+        [[28, 30, 30, 30], [47, 24, 77, 65], [4, 24, 52, 80, 108, 136, 164]],
+        [[28, 30, 30, 30], [49, 25, 81, 68], [4, 28, 56, 84, 112, 140, 168]]];
+
+    var MODE_TERMINATOR = 0;
+    var MODE_NUMERIC = 1,
+        MODE_ALPHANUMERIC = 2,
+        MODE_OCTET = 4,
+        MODE_KANJI = 8;
+
+    // validation regexps
+    var NUMERIC_REGEXP = /^\d*$/;
+    var ALPHANUMERIC_REGEXP = /^[A-Za-z0-9 $%*+\-./:]*$/;
+    var ALPHANUMERIC_OUT_REGEXP = /^[A-Z0-9 $%*+\-./:]*$/;
+
+    var ECCLEVEL_L = 1,
+        ECCLEVEL_M = 0,
+        ECCLEVEL_Q = 3,
+        ECCLEVEL_H = 2;
+
+
+    var GF256_MAP = [],
+        GF256_INVMAP = [-1];
+    for (var i = 0, v = 1; i &lt; 255; ++i) {
+        GF256_MAP.push(v);
+        GF256_INVMAP[v] = i;
+        v = (v * 2) ^ (v &gt;= 128 ? 0x11d : 0);
+    }
+
+
+    var GF256_GENPOLY = [[]];
+    for (var i = 0; i &lt; 30; ++i) {
+        var prevpoly = GF256_GENPOLY[i],
+            poly = [];
+        for (var j = 0; j &lt;= i; ++j) {
+            var a = (j &lt; i ? GF256_MAP[prevpoly[j]] : 0);
+            var b = GF256_MAP[(i + (prevpoly[j - 1] || 0)) % 255];
+            poly.push(GF256_INVMAP[a ^ b]);
+        }
+        GF256_GENPOLY.push(poly);
+    }
+
+    var ALPHANUMERIC_MAP = {};
+    for (var i = 0; i &lt; 45; ++i) {
+        ALPHANUMERIC_MAP[&#39;0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:&#39;.charAt(i)] = i;
+    }
+
+
+    var MASKFUNCS = [
+
+        function (i, j) {
+            return (i + j) % 2 == 0;
+        },
+        function (i, j) {
+            return i % 2 == 0;
+        },
+        function (i, j) {
+            return j % 3 == 0;
+        },
+        function (i, j) {
+            return (i + j) % 3 == 0;
+        },
+        function (i, j) {
+            return (((i / 2) | 0) + ((j / 3) | 0)) % 2 == 0;
+        },
+        function (i, j) {
+            return (i * j) % 2 + (i * j) % 3 == 0;
+        },
+        function (i, j) {
+            return ((i * j) % 2 + (i * j) % 3) % 2 == 0;
+        },
+        function (i, j) {
+            return ((i + j) % 2 + (i * j) % 3) % 2 == 0;
+        }];
+
+    var needsverinfo = function (ver) {
+        return ver &gt; 6;
+    };
+    var getsizebyver = function (ver) {
+        return 4 * ver + 17;
+    };
+
+    var nfullbits = function (ver) {
+
+        var v = VERSIONS[ver];
+        var nbits = 16 * ver * ver + 128 * ver + 64; // finder, timing and format info.
+        if (needsverinfo(ver)) nbits -= 36; // version information
+        if (v[2].length) { // alignment patterns
+            nbits -= 25 * v[2].length * v[2].length - 10 * v[2].length - 55;
+        }
+        return nbits;
+    };
+
+
+    var ndatabits = function (ver, ecclevel) {
+        var nbits = nfullbits(ver) &amp; ~7;
+        var v = VERSIONS[ver];
+        nbits -= 8 * v[0][ecclevel] * v[1][ecclevel]; // ecc bits
+        return nbits;
+    }
+
+
+    var ndatalenbits = function (ver, mode) {
+        switch (mode) {
+            case MODE_NUMERIC:
+                return (ver &lt; 10 ? 10 : ver &lt; 27 ? 12 : 14);
+            case MODE_ALPHANUMERIC:
+                return (ver &lt; 10 ? 9 : ver &lt; 27 ? 11 : 13);
+            case MODE_OCTET:
+                return (ver &lt; 10 ? 8 : 16);
+            case MODE_KANJI:
+                return (ver &lt; 10 ? 8 : ver &lt; 27 ? 10 : 12);
+        }
+    };
+
+    var getmaxdatalen = function (ver, mode, ecclevel) {
+        var nbits = ndatabits(ver, ecclevel) - 4 - ndatalenbits(ver, mode);
+        switch (mode) {
+            case MODE_NUMERIC:
+                return ((nbits / 10) | 0) * 3 + (nbits % 10 &lt; 4 ? 0 : nbits % 10 &lt; 7 ? 1 : 2);
+            case MODE_ALPHANUMERIC:
+                return ((nbits / 11) | 0) * 2 + (nbits % 11 &lt; 6 ? 0 : 1);
+            case MODE_OCTET:
+                return (nbits / 8) | 0;
+            case MODE_KANJI:
+                return (nbits / 13) | 0;
+        }
+    };
+
+
+    var validatedata = function (mode, data) {
+        switch (mode) {
+            case MODE_NUMERIC:
+                if (!data.match(NUMERIC_REGEXP)) return null;
+                return data;
+
+            case MODE_ALPHANUMERIC:
+                if (!data.match(ALPHANUMERIC_REGEXP)) return null;
+                return data.toUpperCase();
+
+            case MODE_OCTET:
+                if (typeof data === &#39;string&#39;) { // encode as utf-8 string
+                    var newdata = [];
+                    for (var i = 0; i &lt; data.length; ++i) {
+                        var ch = data.charCodeAt(i);
+                        if (ch &lt; 0x80) {
+                            newdata.push(ch);
+                        } else if (ch &lt; 0x800) {
+                            newdata.push(0xc0 | (ch &gt;&gt; 6),
+                                0x80 | (ch &amp; 0x3f));
+                        } else if (ch &lt; 0x10000) {
+                            newdata.push(0xe0 | (ch &gt;&gt; 12),
+                                0x80 | ((ch &gt;&gt; 6) &amp; 0x3f),
+                                0x80 | (ch &amp; 0x3f));
+                        } else {
+                            newdata.push(0xf0 | (ch &gt;&gt; 18),
+                                0x80 | ((ch &gt;&gt; 12) &amp; 0x3f),
+                                0x80 | ((ch &gt;&gt; 6) &amp; 0x3f),
+                                0x80 | (ch &amp; 0x3f));
+                        }
+                    }
+                    return newdata;
+                } else {
+                    return data;
+                }
+        }
+    };
+
+
+    var encode = function (ver, mode, data, maxbuflen) {
+        var buf = [];
+        var bits = 0,
+            remaining = 8;
+        var datalen = data.length;
+
+        var pack = function (x, n) {
+            if (n &gt;= remaining) {
+                buf.push(bits | (x &gt;&gt; (n -= remaining)));
+                while (n &gt;= 8) buf.push((x &gt;&gt; (n -= 8)) &amp; 255);
+                bits = 0;
+                remaining = 8;
+            }
+            if (n &gt; 0) bits |= (x &amp; ((1 &lt;&lt; n) - 1)) &lt;&lt; (remaining -= n);
+        };
+
+        var nlenbits = ndatalenbits(ver, mode);
+        pack(mode, 4);
+        pack(datalen, nlenbits);
+
+        switch (mode) {
+            case MODE_NUMERIC:
+                for (var i = 2; i &lt; datalen; i += 3) {
+                    pack(parseInt(data.substring(i - 2, i + 1), 10), 10);
+                }
+                pack(parseInt(data.substring(i - 2), 10), [0, 4, 7][datalen % 3]);
+                break;
+
+            case MODE_ALPHANUMERIC:
+                for (var i = 1; i &lt; datalen; i += 2) {
+                    pack(ALPHANUMERIC_MAP[data.charAt(i - 1)] * 45 +
+                        ALPHANUMERIC_MAP[data.charAt(i)], 11);
+                }
+                if (datalen % 2 == 1) {
+                    pack(ALPHANUMERIC_MAP[data.charAt(i - 1)], 6);
+                }
+                break;
+
+            case MODE_OCTET:
+                for (var i = 0; i &lt; datalen; ++i) {
+                    pack(data[i], 8);
+                }
+                break;
+        }
+        ;
+
+
+        pack(MODE_TERMINATOR, 4);
+        if (remaining &lt; 8) buf.push(bits);
+
+
+        while (buf.length + 1 &lt; maxbuflen) buf.push(0xec, 0x11);
+        if (buf.length &lt; maxbuflen) buf.push(0xec);
+        return buf;
+    };
+
+
+    var calculateecc = function (poly, genpoly) {
+        var modulus = poly.slice(0);
+        var polylen = poly.length,
+            genpolylen = genpoly.length;
+        for (var i = 0; i &lt; genpolylen; ++i) modulus.push(0);
+        for (var i = 0; i &lt; polylen;) {
+            var quotient = GF256_INVMAP[modulus[i++]];
+            if (quotient &gt;= 0) {
+                for (var j = 0; j &lt; genpolylen; ++j) {
+                    modulus[i + j] ^= GF256_MAP[(quotient + genpoly[j]) % 255];
+                }
+            }
+        }
+        return modulus.slice(polylen);
+    };
+
+
+    var augumenteccs = function (poly, nblocks, genpoly) {
+        var subsizes = [];
+        var subsize = (poly.length / nblocks) | 0,
+            subsize0 = 0;
+        var pivot = nblocks - poly.length % nblocks;
+        for (var i = 0; i &lt; pivot; ++i) {
+            subsizes.push(subsize0);
+            subsize0 += subsize;
+        }
+        for (var i = pivot; i &lt; nblocks; ++i) {
+            subsizes.push(subsize0);
+            subsize0 += subsize + 1;
+        }
+        subsizes.push(subsize0);
+
+        var eccs = [];
+        for (var i = 0; i &lt; nblocks; ++i) {
+            eccs.push(calculateecc(poly.slice(subsizes[i], subsizes[i + 1]), genpoly));
+        }
+
+        var result = [];
+        var nitemsperblock = (poly.length / nblocks) | 0;
+        for (var i = 0; i &lt; nitemsperblock; ++i) {
+            for (var j = 0; j &lt; nblocks; ++j) {
+                result.push(poly[subsizes[j] + i]);
+            }
+        }
+        for (var j = pivot; j &lt; nblocks; ++j) {
+            result.push(poly[subsizes[j + 1] - 1]);
+        }
+        for (var i = 0; i &lt; genpoly.length; ++i) {
+            for (var j = 0; j &lt; nblocks; ++j) {
+                result.push(eccs[j][i]);
+            }
+        }
+        return result;
+    };
+
+
+    var augumentbch = function (poly, p, genpoly, q) {
+        var modulus = poly &lt;&lt; q;
+        for (var i = p - 1; i &gt;= 0; --i) {
+            if ((modulus &gt;&gt; (q + i)) &amp; 1) modulus ^= genpoly &lt;&lt; i;
+        }
+        return (poly &lt;&lt; q) | modulus;
+    };
+
+
+    var makebasematrix = function (ver) {
+        var v = VERSIONS[ver],
+            n = getsizebyver(ver);
+        var matrix = [],
+            reserved = [];
+        for (var i = 0; i &lt; n; ++i) {
+            matrix.push([]);
+            reserved.push([]);
+        }
+
+        var blit = function (y, x, h, w, bits) {
+            for (var i = 0; i &lt; h; ++i) {
+                for (var j = 0; j &lt; w; ++j) {
+                    matrix[y + i][x + j] = (bits[i] &gt;&gt; j) &amp; 1;
+                    reserved[y + i][x + j] = 1;
+                }
+            }
+        };
+
+        // finder patterns and a part of timing patterns
+        blit(0, 0, 9, 9, [0x7f, 0x41, 0x5d, 0x5d, 0x5d, 0x41, 0x17f, 0x00, 0x40]);
+        blit(n - 8, 0, 8, 9, [0x100, 0x7f, 0x41, 0x5d, 0x5d, 0x5d, 0x41, 0x7f]);
+        blit(0, n - 8, 9, 8, [0xfe, 0x82, 0xba, 0xba, 0xba, 0x82, 0xfe, 0x00, 0x00]);
+
+        // the rest of timing patterns
+        for (var i = 9; i &lt; n - 8; ++i) {
+            matrix[6][i] = matrix[i][6] = ~i &amp; 1;
+            reserved[6][i] = reserved[i][6] = 1;
+        }
+
+        // alignment patterns
+        var aligns = v[2],
+            m = aligns.length;
+        for (var i = 0; i &lt; m; ++i) {
+            var minj = (i == 0 || i == m - 1 ? 1 : 0),
+                maxj = (i == 0 ? m - 1 : m);
+            for (var j = minj; j &lt; maxj; ++j) {
+                blit(aligns[i], aligns[j], 5, 5, [0x1f, 0x11, 0x15, 0x11, 0x1f]);
+            }
+        }
+
+        // version information
+        if (needsverinfo(ver)) {
+            var code = augumentbch(ver, 6, 0x1f25, 12);
+            var k = 0;
+            for (var i = 0; i &lt; 6; ++i) {
+                for (var j = 0; j &lt; 3; ++j) {
+                    matrix[i][(n - 11) + j] = matrix[(n - 11) + j][i] = (code &gt;&gt; k++) &amp; 1;
+                    reserved[i][(n - 11) + j] = reserved[(n - 11) + j][i] = 1;
+                }
+            }
+        }
+
+        return {
+            matrix: matrix,
+            reserved: reserved
+        };
+    };
+
+
+    var putdata = function (matrix, reserved, buf) {
+        var n = matrix.length;
+        var k = 0,
+            dir = -1;
+        for (var i = n - 1; i &gt;= 0; i -= 2) {
+            if (i == 6)--i; // skip the entire timing pattern column
+            var jj = (dir &lt; 0 ? n - 1 : 0);
+            for (var j = 0; j &lt; n; ++j) {
+                for (var ii = i; ii &gt; i - 2; --ii) {
+                    if (!reserved[jj][ii]) {
+                        matrix[jj][ii] = (buf[k &gt;&gt; 3] &gt;&gt; (~k &amp; 7)) &amp; 1;
+                        ++k;
+                    }
+                }
+                jj += dir;
+            }
+            dir = -dir;
+        }
+        return matrix;
+    };
+
+
+    var maskdata = function (matrix, reserved, mask) {
+        var maskf = MASKFUNCS[mask];
+        var n = matrix.length;
+        for (var i = 0; i &lt; n; ++i) {
+            for (var j = 0; j &lt; n; ++j) {
+                if (!reserved[i][j]) matrix[i][j] ^= maskf(i, j);
+            }
+        }
+        return matrix;
+    }
+
+    // puts the format information.
+    var putformatinfo = function (matrix, reserved, ecclevel, mask) {
+        var n = matrix.length;
+        var code = augumentbch((ecclevel &lt;&lt; 3) | mask, 5, 0x537, 10) ^ 0x5412;
+        for (var i = 0; i &lt; 15; ++i) {
+            var r = [0, 1, 2, 3, 4, 5, 7, 8, n - 7, n - 6, n - 5, n - 4, n - 3, n - 2, n - 1][i];
+            var c = [n - 1, n - 2, n - 3, n - 4, n - 5, n - 6, n - 7, n - 8, 7, 5, 4, 3, 2, 1, 0][i];
+            matrix[r][8] = matrix[8][c] = (code &gt;&gt; i) &amp; 1;
+
+        }
+        return matrix;
+    };
+
+
+    var evaluatematrix = function (matrix) {
+
+        var PENALTY_CONSECUTIVE = 3;
+
+        var PENALTY_TWOBYTWO = 3;
+
+        var PENALTY_FINDERLIKE = 40;
+
+        var PENALTY_DENSITY = 10;
+
+        var evaluategroup = function (groups) {
+            var score = 0;
+            for (var i = 0; i &lt; groups.length; ++i) {
+                if (groups[i] &gt;= 5) score += PENALTY_CONSECUTIVE + (groups[i] - 5);
+            }
+            for (var i = 5; i &lt; groups.length; i += 2) {
+                var p = groups[i];
+                if (groups[i - 1] == p &amp;&amp; groups[i - 2] == 3 * p &amp;&amp; groups[i - 3] == p &amp;&amp;
+                    groups[i - 4] == p &amp;&amp; (groups[i - 5] &gt;= 4 * p || groups[i + 1] &gt;= 4 * p)) {
+                    score += PENALTY_FINDERLIKE;
+                }
+            }
+            return score;
+        };
+
+        var n = matrix.length;
+        var score = 0,
+            nblacks = 0;
+        for (var i = 0; i &lt; n; ++i) {
+            var row = matrix[i];
+            var groups;
+
+            groups = [0];
+            for (var j = 0; j &lt; n;) {
+                var k;
+                for (k = 0; j &lt; n &amp;&amp; row[j]; ++k)++j;
+                groups.push(k);
+                for (k = 0; j &lt; n &amp;&amp; !row[j]; ++k)++j;
+                groups.push(k);
+            }
+            score += evaluategroup(groups);
+
+            groups = [0];
+            for (var j = 0; j &lt; n;) {
+                var k;
+                for (k = 0; j &lt; n &amp;&amp; matrix[j][i]; ++k)++j;
+                groups.push(k);
+                for (k = 0; j &lt; n &amp;&amp; !matrix[j][i]; ++k)++j;
+                groups.push(k);
+            }
+            score += evaluategroup(groups);
+
+            var nextrow = matrix[i + 1] || [];
+            nblacks += row[0];
+            for (var j = 1; j &lt; n; ++j) {
+                var p = row[j];
+                nblacks += p;
+                if (row[j - 1] == p &amp;&amp; nextrow[j] === p &amp;&amp; nextrow[j - 1] === p) {
+                    score += PENALTY_TWOBYTWO;
+                }
+            }
+        }
+
+        score += PENALTY_DENSITY * ((Math.abs(nblacks / n / n - 0.5) / 0.05) | 0);
+        return score;
+    };
+
+
+    var generate = function (data, ver, mode, ecclevel, mask) {
+        var v = VERSIONS[ver];
+        var buf = encode(ver, mode, data, ndatabits(ver, ecclevel) &gt;&gt; 3);
+        buf = augumenteccs(buf, v[1][ecclevel], GF256_GENPOLY[v[0][ecclevel]]);
+
+        var result = makebasematrix(ver);
+        var matrix = result.matrix,
+            reserved = result.reserved;
+        putdata(matrix, reserved, buf);
+
+        if (mask &lt; 0) {
+            maskdata(matrix, reserved, 0);
+            putformatinfo(matrix, reserved, ecclevel, 0);
+            var bestmask = 0,
+                bestscore = evaluatematrix(matrix);
+            maskdata(matrix, reserved, 0);
+            for (mask = 1; mask &lt; 8; ++mask) {
+                maskdata(matrix, reserved, mask);
+                putformatinfo(matrix, reserved, ecclevel, mask);
+                var score = evaluatematrix(matrix);
+                if (bestscore &gt; score) {
+                    bestscore = score;
+                    bestmask = mask;
+                }
+                maskdata(matrix, reserved, mask);
+            }
+            mask = bestmask;
+        }
+
+        maskdata(matrix, reserved, mask);
+        putformatinfo(matrix, reserved, ecclevel, mask);
+        return matrix;
+    };
+
+
+    var QRCode = {
+        &#39;generate&#39;: function (data, options) {
+            var MODES = {
+                &#39;numeric&#39;: MODE_NUMERIC,
+                &#39;alphanumeric&#39;: MODE_ALPHANUMERIC,
+                &#39;octet&#39;: MODE_OCTET
+            };
+            var ECCLEVELS = {
+                &#39;L&#39;: ECCLEVEL_L,
+                &#39;M&#39;: ECCLEVEL_M,
+                &#39;Q&#39;: ECCLEVEL_Q,
+                &#39;H&#39;: ECCLEVEL_H
+            };
+
+            options = options || {};
+            var ver = 3;
+            var ecclevel = ECCLEVELS[&quot;Q&quot;];
+            var mode = -1;
+            var mask = -1;
+
+            if (mode &lt; 0) {
+                if (typeof data === &#39;string&#39;) {
+                    if (data.match(NUMERIC_REGEXP)) {
+                        mode = MODE_NUMERIC;
+                    } else if (data.match(ALPHANUMERIC_OUT_REGEXP)) {
+                        mode = MODE_ALPHANUMERIC;
+                    } else {
+                        mode = MODE_OCTET;
+                    }
+                } else {
+                    mode = MODE_OCTET;
+                }
+            } else if (!(mode == MODE_NUMERIC || mode == MODE_ALPHANUMERIC ||
+                mode == MODE_OCTET)) {
+                throw &#39;暂时不支持你所输入的内容格式&#39;;
+            }
+
+            data = validatedata(mode, data);
+            if (data === null) throw &#39;请输入内容&#39;;
+
+            if (ecclevel &lt; 0 || ecclevel &gt; 3) throw &#39;ecc错误纠正级别有误&#39;;
+
+            if (ver &lt; 0) {
+                for (ver = 1; ver &lt;= 40; ++ver) {
+                    if (data.length &lt;= getmaxdatalen(ver, mode, ecclevel)) break;
+                }
+                if (ver &gt; 40) throw &#39;数据太大&#39;;
+            } else if (ver &lt; 1 || ver &gt; 40) {
+                throw &#39;invalid version&#39;;
+            }
+
+            if (mask != -1 &amp;&amp; (mask &lt; 0 || mask &gt; 8)) throw &#39;invalid mask&#39;;
+
+            return generate(data, ver, mode, ecclevel, mask);
+        },
+
+        &#39;generateHTML&#39;: function (data, options) {
+            options = options || {};
+            var matrix = QRCode[&#39;generate&#39;](data, options);
+            var modsize = 7;
+            var margin = 2;
+
+            var e = document.createElement(&#39;div&#39;);
+            var n = matrix.length;
+            var html = [&#39;&lt;table border=&quot;0&quot; cellspacing=&quot;0&quot; cellpadding=&quot;0&quot; style=&quot;border:&#39; +
+            modsize * margin + &#39;px solid #fff;background:#fff&quot;&gt;&#39;];
+            for (var i = 0; i &lt; n; ++i) {
+                html.push(&#39;&lt;tr&gt;&#39;);
+                for (var j = 0; j &lt; n; ++j) {
+                    html.push(&#39;&lt;td style=&quot;width:&#39; + modsize + &#39;px;height:&#39; + modsize + &#39;px&#39; +
+                        (matrix[i][j] ? &#39;;background:#000&#39; : &#39;&#39;) + &#39;&quot;&gt;&lt;/td&gt;&#39;);
+                }
+                html.push(&#39;&lt;/tr&gt;&#39;);
+            }
+            e.className = &#39;qrcode&#39;;
+            e.innerHTML = html.join(&#39;&#39;) + &#39;&lt;/table&gt;&#39;;
+            return e;
+        },
+
+        &#39;generatePNG&#39;: function (data, options) {
+            options = options || {};
+            var matrix = QRCode[&#39;generate&#39;](data, options);
+            var modsize = 10;
+            var margin = 2;
+            var n = matrix.length;
+            var size = modsize * (n + 2 * margin);
+
+            var canvas = document.createElement(&#39;canvas&#39;),
+                context;
+            canvas.width = canvas.height = size;
+            context = canvas.getContext(&#39;2d&#39;);
+            if (!context) throw &#39;你的浏览器不支持canvas，无法生成二维码&#39;;
+
+            context.fillStyle = &#39;#fff&#39;;
+            context.fillRect(0, 0, size, size);
+            context.fillStyle = &#39;#db4949&#39;;
+            for (var i = 0; i &lt; n; ++i) {
+                for (var j = 0; j &lt; n; ++j) {
+                    if (matrix[i][j]) {
+                        context.fillRect(modsize * (margin + j),
+                            modsize * (margin + i),
+                            modsize, modsize);
+                    }
+                }
+            }
+            return canvas.toDataURL();
+        }
+    };
+
+    return QRCode;
+})();
+&lt;/script&gt;</content>
+    
+    <summary type="html">
+    
+      &lt;div class=&quot;outer&quot; style=&quot;min-height:150px;border:1px solid #eee;padding:4%;box-shadow:2px 2px 9px #eee;margin-bottom:300px;&quot;&gt;&lt;br&gt;    &lt;form 
+    
+    </summary>
+    
+      <category term="前端" scheme="http://xuhaitao.me/categories/%E5%89%8D%E7%AB%AF/"/>
+    
+    
+      <category term="work" scheme="http://xuhaitao.me/tags/work/"/>
+    
+  </entry>
+  
+  <entry>
     <title>流水账</title>
     <link href="http://xuhaitao.me/2013/08/21/%E7%94%9F%E6%B4%BB-hello-world/"/>
     <id>http://xuhaitao.me/2013/08/21/生活-hello-world/</id>

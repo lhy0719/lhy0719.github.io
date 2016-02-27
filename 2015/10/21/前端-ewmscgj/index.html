@@ -1,0 +1,1491 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css"/>
+
+
+
+
+  <link href="//fonts.googleapis.com/css?family=Lato:300,400,700,400italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=0.5.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="二维码,js" />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="向死而生" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=0.5.0" />
+
+
+
+
+
+
+<meta name="description" content="源码地址二维码可以理解为一种信息标签，它将信息转化为二进制然后通过一定的规则进行编码形成几何图形，这样有利于机器识别。二维码在国内普通用户间的流行应该很大程度上归功于微信的推动，并且我发现很多人对二维码始终有着一种“不明觉厉”的感觉，不过假如我们理解了技术细节，便会知道事实上它就是一种信息格式转换，并没有什么神秘之处。网上生成二维码的应用多如牛毛，但大多数都是基于服务端，今天我闲着想使用比较熟悉的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="纯js实现的二维码生成工具">
+<meta property="og:url" content="http://xuhaitao.me/2015/10/21/前端-ewmscgj/index.html">
+<meta property="og:site_name" content="向死而生">
+<meta property="og:description" content="源码地址二维码可以理解为一种信息标签，它将信息转化为二进制然后通过一定的规则进行编码形成几何图形，这样有利于机器识别。二维码在国内普通用户间的流行应该很大程度上归功于微信的推动，并且我发现很多人对二维码始终有着一种“不明觉厉”的感觉，不过假如我们理解了技术细节，便会知道事实上它就是一种信息格式转换，并没有什么神秘之处。网上生成二维码的应用多如牛毛，但大多数都是基于服务端，今天我闲着想使用比较熟悉的">
+<meta property="og:updated_time" content="2016-02-27T14:35:52.235Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="纯js实现的二维码生成工具">
+<meta name="twitter:description" content="源码地址二维码可以理解为一种信息标签，它将信息转化为二进制然后通过一定的规则进行编码形成几何图形，这样有利于机器识别。二维码在国内普通用户间的流行应该很大程度上归功于微信的推动，并且我发现很多人对二维码始终有着一种“不明觉厉”的感觉，不过假如我们理解了技术细节，便会知道事实上它就是一种信息格式转换，并没有什么神秘之处。网上生成二维码的应用多如牛毛，但大多数都是基于服务端，今天我闲着想使用比较熟悉的">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+  <title> 纯js实现的二维码生成工具 | 向死而生 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans,en,default">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?67b459966f3d6a0f597bb3abd62b4700";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">向死而生</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">最强大不是无畏赴死、也不是破坏，而是从黑暗和死地中坚信自己生命的向上，并为此不断攀爬</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu menu-left">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th fa-fw"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-user fa-fw"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+      
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <form class="site-search-form">
+  <input type="text" id="st-search-input" class="st-search-input st-default-search-input" />
+</form>
+
+<script type="text/javascript">
+  (function(w,d,t,u,n,s,e){w['SwiftypeObject']=n;w[n]=w[n]||function(){
+    (w[n].q=w[n].q||[]).push(arguments);};s=d.createElement(t);
+    e=d.getElementsByTagName(t)[0];s.async=1;s.src=u;e.parentNode.insertBefore(s,e);
+  })(window,document,'script','//s.swiftypecdn.com/install/v2/st.js','_st');
+
+  _st('install', 'SUbah67h4oLBzLULC4cx','2.0.0');
+</script>
+
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                纯js实现的二维码生成工具
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-10-21T18:07:43+08:00" content="2015-10-21">
+              2015-10-21
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/前端/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/10/21/前端-ewmscgj/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/10/21/前端-ewmscgj/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <div class="outer" style="min-height:150px;border:1px solid #eee;padding:4%;box-shadow:2px 2px 9px #eee;margin-bottom:300px;"><br>    <form method="get" action="" style="float:left;"><br>        <input type="text" id="QRstr" placeholder="输入要生成二维码的内容" class="input big text" value=""><br>        <input type="button" value="生成二维码" id="creatQRcode" class="big button"><br>    </form><br>    <div id="output" style="clear:both;"></div><br clear="all"><br>    <div><a class="fa fa-github pull-right " href="https://github.com/enml/project_demo/blob/master/generateQRCode.js" target="_blank" rel="external">源码地址</a></div><br></div><br><p>二维码可以理解为一种信息标签，它将信息转化为二进制然后通过一定的规则进行编码形成几何图形，这样有利于机器识别。二维码在国内普通用户间的流行应该很大程度上归功于微信的推动，并且我发现很多人对二维码始终有着一种“不明觉厉”的感觉，不过假如我们理解了技术细节，便会知道事实上它就是一种信息格式转换，并没有什么神秘之处。</p><br><br><p>网上生成二维码的应用多如牛毛，但大多数都是基于服务端，今天我闲着想使用比较熟悉的javascript来实现一下，网上搜了一下发现还是挺多使用javascript来生成二维码的，但绝大多数甚至说我搜到的全部都是使用现成的库，比如jquery-qrcode、Google Chart API。使用库的好处就是快捷方便，但弊端就是你会像一个傻子一样什么原理细节都不懂，你只是把人家封装好的黑盒子拿过来，接上几根线就可以用了，但这个黑盒子里面到底是什么你都不知道。这就是为什么同样是程序员，有的人可以成为封装黑盒子的高级工程师，而有的人却当个苦逼的码农。</p><br><br><p>后来查找了一下ISO/IEC 18004:2006文档，足足100页的英文文档看的够呛了，不过说实话写的很详细条理很清晰，相信只要有耐心的人基本都能看懂它的实现原理。不过技术原理看懂了，不代表项目就实现了。编程的精髓并且也是最大的难点不在于语言本身，而是一种对客观事物进行抽象的思维能力；学会一门语言的语法很容易，有点基础的人学一门新语言基本一两天就搞定了，但仅仅只是语法是没有用的，能使用语言处理问题才是最重要的，把客观事物抽象处理是一件很费脑力的事情，我现在仍然感到很吃力。看完ISO/IEC 18004:2006文档我能清楚的理解二维码构造的原理，但要抽象成代码就很吃力了，网上不依赖库完全使用javascript实现的例子非常罕见，所以我花了几天最终才完成了这个小项目。</p><br><br>
+
+<script>
+var QR_str = document.getElementById("QRstr"),
+    creatQR_btn = document.getElementById("creatQRcode"),
+    outputDiv = document.getElementById("output");
+addEvent(QR_str, "mouseover", function () {
+    this.select();
+});
+var canvas = document.createElement('canvas'),
+    context;
+context = canvas.getContext('2d');
+if (context) {
+    addEvent(creatQR_btn, "click", function () {
+        var png = QRCode.generatePNG(QR_str.value);
+        outputDiv.innerHTML = "<img src=\'" + png + "\'>";
+    });
+} else {
+    addEvent(creatQR_btn, "click", function () {
+        var table = QRCode.generateHTML(QR_str.value);
+        outputDiv.innerHTML = table;
+    });
+}
+;
+
+function addEvent(ele, event, fn) {
+    if (document.addEventListener) {
+        ele.addEventListener(event, fn);
+    } else if (ele.attachEvent) {
+        ele.attachEvent("on" + event, fn);
+    } else {
+        ele["on" + event] = fn;
+    }
+};
+
+
+var QRCode = (function () {
+    var VERSIONS = [
+        null,
+        [[10, 7, 17, 13], [1, 1, 1, 1], []],
+        [[16, 10, 28, 22], [1, 1, 1, 1], [4, 16]],
+        [[26, 15, 22, 18], [1, 1, 2, 2], [4, 20]],
+        [[18, 20, 16, 26], [2, 1, 4, 2], [4, 24]],
+        [[24, 26, 22, 18], [2, 1, 4, 4], [4, 28]],
+        [[16, 18, 28, 24], [4, 2, 4, 4], [4, 32]],
+        [[18, 20, 26, 18], [4, 2, 5, 6], [4, 20, 36]],
+        [[22, 24, 26, 22], [4, 2, 6, 6], [4, 22, 40]],
+        [[22, 30, 24, 20], [5, 2, 8, 8], [4, 24, 44]],
+        [[26, 18, 28, 24], [5, 4, 8, 8], [4, 26, 48]],
+        [[30, 20, 24, 28], [5, 4, 11, 8], [4, 28, 52]],
+        [[22, 24, 28, 26], [8, 4, 11, 10], [4, 30, 56]],
+        [[22, 26, 22, 24], [9, 4, 16, 12], [4, 32, 60]],
+        [[24, 30, 24, 20], [9, 4, 16, 16], [4, 24, 44, 64]],
+        [[24, 22, 24, 30], [10, 6, 18, 12], [4, 24, 46, 68]],
+        [[28, 24, 30, 24], [10, 6, 16, 17], [4, 24, 48, 72]],
+        [[28, 28, 28, 28], [11, 6, 19, 16], [4, 28, 52, 76]],
+        [[26, 30, 28, 28], [13, 6, 21, 18], [4, 28, 54, 80]],
+        [[26, 28, 26, 26], [14, 7, 25, 21], [4, 28, 56, 84]],
+        [[26, 28, 28, 30], [16, 8, 25, 20], [4, 32, 60, 88]],
+        [[26, 28, 30, 28], [17, 8, 25, 23], [4, 26, 48, 70, 92]],
+        [[28, 28, 24, 30], [17, 9, 34, 23], [4, 24, 48, 72, 96]],
+        [[28, 30, 30, 30], [18, 9, 30, 25], [4, 28, 52, 76, 100]],
+        [[28, 30, 30, 30], [20, 10, 32, 27], [4, 26, 52, 78, 104]],
+        [[28, 26, 30, 30], [21, 12, 35, 29], [4, 30, 56, 82, 108]],
+        [[28, 28, 30, 28], [23, 12, 37, 34], [4, 28, 56, 84, 112]],
+        [[28, 30, 30, 30], [25, 12, 40, 34], [4, 32, 60, 88, 116]],
+        [[28, 30, 30, 30], [26, 13, 42, 35], [4, 24, 48, 72, 96, 120]],
+        [[28, 30, 30, 30], [28, 14, 45, 38], [4, 28, 52, 76, 100, 124]],
+        [[28, 30, 30, 30], [29, 15, 48, 40], [4, 24, 50, 76, 102, 128]],
+        [[28, 30, 30, 30], [31, 16, 51, 43], [4, 28, 54, 80, 106, 132]],
+        [[28, 30, 30, 30], [33, 17, 54, 45], [4, 32, 58, 84, 110, 136]],
+        [[28, 30, 30, 30], [35, 18, 57, 48], [4, 28, 56, 84, 112, 140]],
+        [[28, 30, 30, 30], [37, 19, 60, 51], [4, 32, 60, 88, 116, 144]],
+        [[28, 30, 30, 30], [38, 19, 63, 53], [4, 28, 52, 76, 100, 124, 148]],
+        [[28, 30, 30, 30], [40, 20, 66, 56], [4, 22, 48, 74, 100, 126, 152]],
+        [[28, 30, 30, 30], [43, 21, 70, 59], [4, 26, 52, 78, 104, 130, 156]],
+        [[28, 30, 30, 30], [45, 22, 74, 62], [4, 30, 56, 82, 108, 134, 160]],
+        [[28, 30, 30, 30], [47, 24, 77, 65], [4, 24, 52, 80, 108, 136, 164]],
+        [[28, 30, 30, 30], [49, 25, 81, 68], [4, 28, 56, 84, 112, 140, 168]]];
+
+    var MODE_TERMINATOR = 0;
+    var MODE_NUMERIC = 1,
+        MODE_ALPHANUMERIC = 2,
+        MODE_OCTET = 4,
+        MODE_KANJI = 8;
+
+    // validation regexps
+    var NUMERIC_REGEXP = /^\d*$/;
+    var ALPHANUMERIC_REGEXP = /^[A-Za-z0-9 $%*+\-./:]*$/;
+    var ALPHANUMERIC_OUT_REGEXP = /^[A-Z0-9 $%*+\-./:]*$/;
+
+    var ECCLEVEL_L = 1,
+        ECCLEVEL_M = 0,
+        ECCLEVEL_Q = 3,
+        ECCLEVEL_H = 2;
+
+
+    var GF256_MAP = [],
+        GF256_INVMAP = [-1];
+    for (var i = 0, v = 1; i < 255; ++i) {
+        GF256_MAP.push(v);
+        GF256_INVMAP[v] = i;
+        v = (v * 2) ^ (v >= 128 ? 0x11d : 0);
+    }
+
+
+    var GF256_GENPOLY = [[]];
+    for (var i = 0; i < 30; ++i) {
+        var prevpoly = GF256_GENPOLY[i],
+            poly = [];
+        for (var j = 0; j <= i; ++j) {
+            var a = (j < i ? GF256_MAP[prevpoly[j]] : 0);
+            var b = GF256_MAP[(i + (prevpoly[j - 1] || 0)) % 255];
+            poly.push(GF256_INVMAP[a ^ b]);
+        }
+        GF256_GENPOLY.push(poly);
+    }
+
+    var ALPHANUMERIC_MAP = {};
+    for (var i = 0; i < 45; ++i) {
+        ALPHANUMERIC_MAP['0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:'.charAt(i)] = i;
+    }
+
+
+    var MASKFUNCS = [
+
+        function (i, j) {
+            return (i + j) % 2 == 0;
+        },
+        function (i, j) {
+            return i % 2 == 0;
+        },
+        function (i, j) {
+            return j % 3 == 0;
+        },
+        function (i, j) {
+            return (i + j) % 3 == 0;
+        },
+        function (i, j) {
+            return (((i / 2) | 0) + ((j / 3) | 0)) % 2 == 0;
+        },
+        function (i, j) {
+            return (i * j) % 2 + (i * j) % 3 == 0;
+        },
+        function (i, j) {
+            return ((i * j) % 2 + (i * j) % 3) % 2 == 0;
+        },
+        function (i, j) {
+            return ((i + j) % 2 + (i * j) % 3) % 2 == 0;
+        }];
+
+    var needsverinfo = function (ver) {
+        return ver > 6;
+    };
+    var getsizebyver = function (ver) {
+        return 4 * ver + 17;
+    };
+
+    var nfullbits = function (ver) {
+
+        var v = VERSIONS[ver];
+        var nbits = 16 * ver * ver + 128 * ver + 64; // finder, timing and format info.
+        if (needsverinfo(ver)) nbits -= 36; // version information
+        if (v[2].length) { // alignment patterns
+            nbits -= 25 * v[2].length * v[2].length - 10 * v[2].length - 55;
+        }
+        return nbits;
+    };
+
+
+    var ndatabits = function (ver, ecclevel) {
+        var nbits = nfullbits(ver) & ~7;
+        var v = VERSIONS[ver];
+        nbits -= 8 * v[0][ecclevel] * v[1][ecclevel]; // ecc bits
+        return nbits;
+    }
+
+
+    var ndatalenbits = function (ver, mode) {
+        switch (mode) {
+            case MODE_NUMERIC:
+                return (ver < 10 ? 10 : ver < 27 ? 12 : 14);
+            case MODE_ALPHANUMERIC:
+                return (ver < 10 ? 9 : ver < 27 ? 11 : 13);
+            case MODE_OCTET:
+                return (ver < 10 ? 8 : 16);
+            case MODE_KANJI:
+                return (ver < 10 ? 8 : ver < 27 ? 10 : 12);
+        }
+    };
+
+    var getmaxdatalen = function (ver, mode, ecclevel) {
+        var nbits = ndatabits(ver, ecclevel) - 4 - ndatalenbits(ver, mode);
+        switch (mode) {
+            case MODE_NUMERIC:
+                return ((nbits / 10) | 0) * 3 + (nbits % 10 < 4 ? 0 : nbits % 10 < 7 ? 1 : 2);
+            case MODE_ALPHANUMERIC:
+                return ((nbits / 11) | 0) * 2 + (nbits % 11 < 6 ? 0 : 1);
+            case MODE_OCTET:
+                return (nbits / 8) | 0;
+            case MODE_KANJI:
+                return (nbits / 13) | 0;
+        }
+    };
+
+
+    var validatedata = function (mode, data) {
+        switch (mode) {
+            case MODE_NUMERIC:
+                if (!data.match(NUMERIC_REGEXP)) return null;
+                return data;
+
+            case MODE_ALPHANUMERIC:
+                if (!data.match(ALPHANUMERIC_REGEXP)) return null;
+                return data.toUpperCase();
+
+            case MODE_OCTET:
+                if (typeof data === 'string') { // encode as utf-8 string
+                    var newdata = [];
+                    for (var i = 0; i < data.length; ++i) {
+                        var ch = data.charCodeAt(i);
+                        if (ch < 0x80) {
+                            newdata.push(ch);
+                        } else if (ch < 0x800) {
+                            newdata.push(0xc0 | (ch >> 6),
+                                0x80 | (ch & 0x3f));
+                        } else if (ch < 0x10000) {
+                            newdata.push(0xe0 | (ch >> 12),
+                                0x80 | ((ch >> 6) & 0x3f),
+                                0x80 | (ch & 0x3f));
+                        } else {
+                            newdata.push(0xf0 | (ch >> 18),
+                                0x80 | ((ch >> 12) & 0x3f),
+                                0x80 | ((ch >> 6) & 0x3f),
+                                0x80 | (ch & 0x3f));
+                        }
+                    }
+                    return newdata;
+                } else {
+                    return data;
+                }
+        }
+    };
+
+
+    var encode = function (ver, mode, data, maxbuflen) {
+        var buf = [];
+        var bits = 0,
+            remaining = 8;
+        var datalen = data.length;
+
+        var pack = function (x, n) {
+            if (n >= remaining) {
+                buf.push(bits | (x >> (n -= remaining)));
+                while (n >= 8) buf.push((x >> (n -= 8)) & 255);
+                bits = 0;
+                remaining = 8;
+            }
+            if (n > 0) bits |= (x & ((1 << n) - 1)) << (remaining -= n);
+        };
+
+        var nlenbits = ndatalenbits(ver, mode);
+        pack(mode, 4);
+        pack(datalen, nlenbits);
+
+        switch (mode) {
+            case MODE_NUMERIC:
+                for (var i = 2; i < datalen; i += 3) {
+                    pack(parseInt(data.substring(i - 2, i + 1), 10), 10);
+                }
+                pack(parseInt(data.substring(i - 2), 10), [0, 4, 7][datalen % 3]);
+                break;
+
+            case MODE_ALPHANUMERIC:
+                for (var i = 1; i < datalen; i += 2) {
+                    pack(ALPHANUMERIC_MAP[data.charAt(i - 1)] * 45 +
+                        ALPHANUMERIC_MAP[data.charAt(i)], 11);
+                }
+                if (datalen % 2 == 1) {
+                    pack(ALPHANUMERIC_MAP[data.charAt(i - 1)], 6);
+                }
+                break;
+
+            case MODE_OCTET:
+                for (var i = 0; i < datalen; ++i) {
+                    pack(data[i], 8);
+                }
+                break;
+        }
+        ;
+
+
+        pack(MODE_TERMINATOR, 4);
+        if (remaining < 8) buf.push(bits);
+
+
+        while (buf.length + 1 < maxbuflen) buf.push(0xec, 0x11);
+        if (buf.length < maxbuflen) buf.push(0xec);
+        return buf;
+    };
+
+
+    var calculateecc = function (poly, genpoly) {
+        var modulus = poly.slice(0);
+        var polylen = poly.length,
+            genpolylen = genpoly.length;
+        for (var i = 0; i < genpolylen; ++i) modulus.push(0);
+        for (var i = 0; i < polylen;) {
+            var quotient = GF256_INVMAP[modulus[i++]];
+            if (quotient >= 0) {
+                for (var j = 0; j < genpolylen; ++j) {
+                    modulus[i + j] ^= GF256_MAP[(quotient + genpoly[j]) % 255];
+                }
+            }
+        }
+        return modulus.slice(polylen);
+    };
+
+
+    var augumenteccs = function (poly, nblocks, genpoly) {
+        var subsizes = [];
+        var subsize = (poly.length / nblocks) | 0,
+            subsize0 = 0;
+        var pivot = nblocks - poly.length % nblocks;
+        for (var i = 0; i < pivot; ++i) {
+            subsizes.push(subsize0);
+            subsize0 += subsize;
+        }
+        for (var i = pivot; i < nblocks; ++i) {
+            subsizes.push(subsize0);
+            subsize0 += subsize + 1;
+        }
+        subsizes.push(subsize0);
+
+        var eccs = [];
+        for (var i = 0; i < nblocks; ++i) {
+            eccs.push(calculateecc(poly.slice(subsizes[i], subsizes[i + 1]), genpoly));
+        }
+
+        var result = [];
+        var nitemsperblock = (poly.length / nblocks) | 0;
+        for (var i = 0; i < nitemsperblock; ++i) {
+            for (var j = 0; j < nblocks; ++j) {
+                result.push(poly[subsizes[j] + i]);
+            }
+        }
+        for (var j = pivot; j < nblocks; ++j) {
+            result.push(poly[subsizes[j + 1] - 1]);
+        }
+        for (var i = 0; i < genpoly.length; ++i) {
+            for (var j = 0; j < nblocks; ++j) {
+                result.push(eccs[j][i]);
+            }
+        }
+        return result;
+    };
+
+
+    var augumentbch = function (poly, p, genpoly, q) {
+        var modulus = poly << q;
+        for (var i = p - 1; i >= 0; --i) {
+            if ((modulus >> (q + i)) & 1) modulus ^= genpoly << i;
+        }
+        return (poly << q) | modulus;
+    };
+
+
+    var makebasematrix = function (ver) {
+        var v = VERSIONS[ver],
+            n = getsizebyver(ver);
+        var matrix = [],
+            reserved = [];
+        for (var i = 0; i < n; ++i) {
+            matrix.push([]);
+            reserved.push([]);
+        }
+
+        var blit = function (y, x, h, w, bits) {
+            for (var i = 0; i < h; ++i) {
+                for (var j = 0; j < w; ++j) {
+                    matrix[y + i][x + j] = (bits[i] >> j) & 1;
+                    reserved[y + i][x + j] = 1;
+                }
+            }
+        };
+
+        // finder patterns and a part of timing patterns
+        blit(0, 0, 9, 9, [0x7f, 0x41, 0x5d, 0x5d, 0x5d, 0x41, 0x17f, 0x00, 0x40]);
+        blit(n - 8, 0, 8, 9, [0x100, 0x7f, 0x41, 0x5d, 0x5d, 0x5d, 0x41, 0x7f]);
+        blit(0, n - 8, 9, 8, [0xfe, 0x82, 0xba, 0xba, 0xba, 0x82, 0xfe, 0x00, 0x00]);
+
+        // the rest of timing patterns
+        for (var i = 9; i < n - 8; ++i) {
+            matrix[6][i] = matrix[i][6] = ~i & 1;
+            reserved[6][i] = reserved[i][6] = 1;
+        }
+
+        // alignment patterns
+        var aligns = v[2],
+            m = aligns.length;
+        for (var i = 0; i < m; ++i) {
+            var minj = (i == 0 || i == m - 1 ? 1 : 0),
+                maxj = (i == 0 ? m - 1 : m);
+            for (var j = minj; j < maxj; ++j) {
+                blit(aligns[i], aligns[j], 5, 5, [0x1f, 0x11, 0x15, 0x11, 0x1f]);
+            }
+        }
+
+        // version information
+        if (needsverinfo(ver)) {
+            var code = augumentbch(ver, 6, 0x1f25, 12);
+            var k = 0;
+            for (var i = 0; i < 6; ++i) {
+                for (var j = 0; j < 3; ++j) {
+                    matrix[i][(n - 11) + j] = matrix[(n - 11) + j][i] = (code >> k++) & 1;
+                    reserved[i][(n - 11) + j] = reserved[(n - 11) + j][i] = 1;
+                }
+            }
+        }
+
+        return {
+            matrix: matrix,
+            reserved: reserved
+        };
+    };
+
+
+    var putdata = function (matrix, reserved, buf) {
+        var n = matrix.length;
+        var k = 0,
+            dir = -1;
+        for (var i = n - 1; i >= 0; i -= 2) {
+            if (i == 6)--i; // skip the entire timing pattern column
+            var jj = (dir < 0 ? n - 1 : 0);
+            for (var j = 0; j < n; ++j) {
+                for (var ii = i; ii > i - 2; --ii) {
+                    if (!reserved[jj][ii]) {
+                        matrix[jj][ii] = (buf[k >> 3] >> (~k & 7)) & 1;
+                        ++k;
+                    }
+                }
+                jj += dir;
+            }
+            dir = -dir;
+        }
+        return matrix;
+    };
+
+
+    var maskdata = function (matrix, reserved, mask) {
+        var maskf = MASKFUNCS[mask];
+        var n = matrix.length;
+        for (var i = 0; i < n; ++i) {
+            for (var j = 0; j < n; ++j) {
+                if (!reserved[i][j]) matrix[i][j] ^= maskf(i, j);
+            }
+        }
+        return matrix;
+    }
+
+    // puts the format information.
+    var putformatinfo = function (matrix, reserved, ecclevel, mask) {
+        var n = matrix.length;
+        var code = augumentbch((ecclevel << 3) | mask, 5, 0x537, 10) ^ 0x5412;
+        for (var i = 0; i < 15; ++i) {
+            var r = [0, 1, 2, 3, 4, 5, 7, 8, n - 7, n - 6, n - 5, n - 4, n - 3, n - 2, n - 1][i];
+            var c = [n - 1, n - 2, n - 3, n - 4, n - 5, n - 6, n - 7, n - 8, 7, 5, 4, 3, 2, 1, 0][i];
+            matrix[r][8] = matrix[8][c] = (code >> i) & 1;
+
+        }
+        return matrix;
+    };
+
+
+    var evaluatematrix = function (matrix) {
+
+        var PENALTY_CONSECUTIVE = 3;
+
+        var PENALTY_TWOBYTWO = 3;
+
+        var PENALTY_FINDERLIKE = 40;
+
+        var PENALTY_DENSITY = 10;
+
+        var evaluategroup = function (groups) {
+            var score = 0;
+            for (var i = 0; i < groups.length; ++i) {
+                if (groups[i] >= 5) score += PENALTY_CONSECUTIVE + (groups[i] - 5);
+            }
+            for (var i = 5; i < groups.length; i += 2) {
+                var p = groups[i];
+                if (groups[i - 1] == p && groups[i - 2] == 3 * p && groups[i - 3] == p &&
+                    groups[i - 4] == p && (groups[i - 5] >= 4 * p || groups[i + 1] >= 4 * p)) {
+                    score += PENALTY_FINDERLIKE;
+                }
+            }
+            return score;
+        };
+
+        var n = matrix.length;
+        var score = 0,
+            nblacks = 0;
+        for (var i = 0; i < n; ++i) {
+            var row = matrix[i];
+            var groups;
+
+            groups = [0];
+            for (var j = 0; j < n;) {
+                var k;
+                for (k = 0; j < n && row[j]; ++k)++j;
+                groups.push(k);
+                for (k = 0; j < n && !row[j]; ++k)++j;
+                groups.push(k);
+            }
+            score += evaluategroup(groups);
+
+            groups = [0];
+            for (var j = 0; j < n;) {
+                var k;
+                for (k = 0; j < n && matrix[j][i]; ++k)++j;
+                groups.push(k);
+                for (k = 0; j < n && !matrix[j][i]; ++k)++j;
+                groups.push(k);
+            }
+            score += evaluategroup(groups);
+
+            var nextrow = matrix[i + 1] || [];
+            nblacks += row[0];
+            for (var j = 1; j < n; ++j) {
+                var p = row[j];
+                nblacks += p;
+                if (row[j - 1] == p && nextrow[j] === p && nextrow[j - 1] === p) {
+                    score += PENALTY_TWOBYTWO;
+                }
+            }
+        }
+
+        score += PENALTY_DENSITY * ((Math.abs(nblacks / n / n - 0.5) / 0.05) | 0);
+        return score;
+    };
+
+
+    var generate = function (data, ver, mode, ecclevel, mask) {
+        var v = VERSIONS[ver];
+        var buf = encode(ver, mode, data, ndatabits(ver, ecclevel) >> 3);
+        buf = augumenteccs(buf, v[1][ecclevel], GF256_GENPOLY[v[0][ecclevel]]);
+
+        var result = makebasematrix(ver);
+        var matrix = result.matrix,
+            reserved = result.reserved;
+        putdata(matrix, reserved, buf);
+
+        if (mask < 0) {
+            maskdata(matrix, reserved, 0);
+            putformatinfo(matrix, reserved, ecclevel, 0);
+            var bestmask = 0,
+                bestscore = evaluatematrix(matrix);
+            maskdata(matrix, reserved, 0);
+            for (mask = 1; mask < 8; ++mask) {
+                maskdata(matrix, reserved, mask);
+                putformatinfo(matrix, reserved, ecclevel, mask);
+                var score = evaluatematrix(matrix);
+                if (bestscore > score) {
+                    bestscore = score;
+                    bestmask = mask;
+                }
+                maskdata(matrix, reserved, mask);
+            }
+            mask = bestmask;
+        }
+
+        maskdata(matrix, reserved, mask);
+        putformatinfo(matrix, reserved, ecclevel, mask);
+        return matrix;
+    };
+
+
+    var QRCode = {
+        'generate': function (data, options) {
+            var MODES = {
+                'numeric': MODE_NUMERIC,
+                'alphanumeric': MODE_ALPHANUMERIC,
+                'octet': MODE_OCTET
+            };
+            var ECCLEVELS = {
+                'L': ECCLEVEL_L,
+                'M': ECCLEVEL_M,
+                'Q': ECCLEVEL_Q,
+                'H': ECCLEVEL_H
+            };
+
+            options = options || {};
+            var ver = 3;
+            var ecclevel = ECCLEVELS["Q"];
+            var mode = -1;
+            var mask = -1;
+
+            if (mode < 0) {
+                if (typeof data === 'string') {
+                    if (data.match(NUMERIC_REGEXP)) {
+                        mode = MODE_NUMERIC;
+                    } else if (data.match(ALPHANUMERIC_OUT_REGEXP)) {
+                        mode = MODE_ALPHANUMERIC;
+                    } else {
+                        mode = MODE_OCTET;
+                    }
+                } else {
+                    mode = MODE_OCTET;
+                }
+            } else if (!(mode == MODE_NUMERIC || mode == MODE_ALPHANUMERIC ||
+                mode == MODE_OCTET)) {
+                throw '暂时不支持你所输入的内容格式';
+            }
+
+            data = validatedata(mode, data);
+            if (data === null) throw '请输入内容';
+
+            if (ecclevel < 0 || ecclevel > 3) throw 'ecc错误纠正级别有误';
+
+            if (ver < 0) {
+                for (ver = 1; ver <= 40; ++ver) {
+                    if (data.length <= getmaxdatalen(ver, mode, ecclevel)) break;
+                }
+                if (ver > 40) throw '数据太大';
+            } else if (ver < 1 || ver > 40) {
+                throw 'invalid version';
+            }
+
+            if (mask != -1 && (mask < 0 || mask > 8)) throw 'invalid mask';
+
+            return generate(data, ver, mode, ecclevel, mask);
+        },
+
+        'generateHTML': function (data, options) {
+            options = options || {};
+            var matrix = QRCode['generate'](data, options);
+            var modsize = 7;
+            var margin = 2;
+
+            var e = document.createElement('div');
+            var n = matrix.length;
+            var html = ['<table border="0" cellspacing="0" cellpadding="0" style="border:' +
+            modsize * margin + 'px solid #fff;background:#fff">'];
+            for (var i = 0; i < n; ++i) {
+                html.push('<tr>');
+                for (var j = 0; j < n; ++j) {
+                    html.push('<td style="width:' + modsize + 'px;height:' + modsize + 'px' +
+                        (matrix[i][j] ? ';background:#000' : '') + '"></td>');
+                }
+                html.push('</tr>');
+            }
+            e.className = 'qrcode';
+            e.innerHTML = html.join('') + '</table>';
+            return e;
+        },
+
+        'generatePNG': function (data, options) {
+            options = options || {};
+            var matrix = QRCode['generate'](data, options);
+            var modsize = 10;
+            var margin = 2;
+            var n = matrix.length;
+            var size = modsize * (n + 2 * margin);
+
+            var canvas = document.createElement('canvas'),
+                context;
+            canvas.width = canvas.height = size;
+            context = canvas.getContext('2d');
+            if (!context) throw '你的浏览器不支持canvas，无法生成二维码';
+
+            context.fillStyle = '#fff';
+            context.fillRect(0, 0, size, size);
+            context.fillStyle = '#db4949';
+            for (var i = 0; i < n; ++i) {
+                for (var j = 0; j < n; ++j) {
+                    if (matrix[i][j]) {
+                        context.fillRect(modsize * (margin + j),
+                            modsize * (margin + i),
+                            modsize, modsize);
+                    }
+                }
+            }
+            return canvas.toDataURL();
+        }
+    };
+
+    return QRCode;
+})();
+</script>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/work/" rel="tag">#work</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2013/08/21/生活-hello-world/" rel="next" title="流水账">
+                <i class="fa fa-chevron-left"></i> 流水账
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/21/前端-qdzjk/" rel="prev" title="前端组件库">
+                前端组件库 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <div class="ds-share flat" data-thread-key="2015/10/21/前端-ewmscgj/"
+     data-title="纯js实现的二维码生成工具"
+     data-content=""
+     data-url="http://xuhaitao.me/2015/10/21/前端-ewmscgj/">
+  <div class="ds-share-inline">
+    <ul  class="ds-share-icons-16">
+
+      <li data-toggle="ds-share-icons-more"><a class="ds-more" href="javascript:void(0);">分享到：</a></li>
+      <li><a class="ds-weibo" href="javascript:void(0);" data-service="weibo">微博</a></li>
+      <li><a class="ds-qzone" href="javascript:void(0);" data-service="qzone">QQ空间</a></li>
+      <li><a class="ds-qqt" href="javascript:void(0);" data-service="qqt">腾讯微博</a></li>
+      <li><a class="ds-wechat" href="javascript:void(0);" data-service="wechat">微信</a></li>
+
+    </ul>
+    <div class="ds-share-icons-more">
+    </div>
+  </div>
+</div>
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+  <p>热评文章</p>
+  <div class="ds-top-threads" data-range="weekly" data-num-items="4"></div>
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/10/21/前端-ewmscgj/"
+           data-title="纯js实现的二维码生成工具" data-url="http://xuhaitao.me/2015/10/21/前端-ewmscgj/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/default_avatar.jpg"
+               alt="徐海涛" />
+          <p class="site-author-name" itemprop="name">徐海涛</p>
+          <p class="site-description motion-element" itemprop="description">职业打字员，一直被碾压</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">4</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+          
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/lhy0719" target="_blank">
+                  
+                    <i class="fa fa-github"></i> github
+                  
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.zhihu.com/people/xu-xiao-tao-64" target="_blank">
+                  
+                    <i class="fa fa-globe"></i> zhihu
+                  
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator">
+            <i class="fa fa-angle-double-up"></i>
+          </div>
+          <div class="post-toc">
+            
+              
+            
+            
+              <p class="post-toc-empty">此文章未包含目录</p>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator">
+            <i class="fa fa-angle-double-down"></i>
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2013 - 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">徐海涛</span>
+</div>
+
+<div class="powered-by">
+  好人一个
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+
+      </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  
+
+
+  
+
+
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=0.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=0.5.0"></script>
+
+
+
+  
+  
+
+  
+  
+<script type="text/javascript" src="/js/src/scrollspy.js?v=0.5.0"></script>
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 1 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = NexT.utils.escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    NexT.motion.middleWares.sidebar = function () {
+      var $tocContent = $('.post-toc-content');
+
+      if (CONFIG.sidebar.display === 'post' || CONFIG.sidebar.display === 'always') {
+        if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+          NexT.utils.displaySidebar();
+        }
+      }
+    };
+  });
+</script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=0.5.0"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"xuhaitaocom"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+  
+
+
+
+
+
+  
+  
+
+  
+  
+
+
+</body>
+</html>
